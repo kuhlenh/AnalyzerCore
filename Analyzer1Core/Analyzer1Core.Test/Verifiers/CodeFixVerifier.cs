@@ -20,19 +20,13 @@ namespace TestHelper
         /// Returns the codefix being tested (C#) - to be implemented in non-abstract class
         /// </summary>
         /// <returns>The CodeFixProvider to be used for CSharp code</returns>
-        protected virtual CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return null;
-        }
+        protected virtual CodeFixProvider GetCSharpCodeFixProvider() => null;
 
         /// <summary>
         /// Returns the codefix being tested (VB) - to be implemented in non-abstract class
         /// </summary>
         /// <returns>The CodeFixProvider to be used for VisualBasic code</returns>
-        protected virtual CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
-        }
+        protected virtual CodeFixProvider GetBasicCodeFixProvider() => null;
 
         /// <summary>
         /// Called to test a C# codefix when applied on the inputted string as a source
@@ -41,10 +35,7 @@ namespace TestHelper
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
-        {
-            VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
-        }
+        protected void VerifyCSharpFix(string oldSource,string newSource,int? codeFixIndex = null,bool allowNewCompilerDiagnostics = false) => VerifyFix(LanguageNames.CSharp,GetCSharpDiagnosticAnalyzer(),GetCSharpCodeFixProvider(),oldSource,newSource,codeFixIndex,allowNewCompilerDiagnostics);
 
         /// <summary>
         /// Called to test a VB codefix when applied on the inputted string as a source
@@ -53,10 +44,7 @@ namespace TestHelper
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
-        {
-            VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
-        }
+        protected void VerifyBasicFix(string oldSource,string newSource,int? codeFixIndex = null,bool allowNewCompilerDiagnostics = false) => VerifyFix(LanguageNames.VisualBasic,GetBasicDiagnosticAnalyzer(),GetBasicCodeFixProvider(),oldSource,newSource,codeFixIndex,allowNewCompilerDiagnostics);
 
         /// <summary>
         /// General verifier for codefixes.

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Analyzer1Core
 {
@@ -20,32 +21,36 @@ namespace Analyzer1Core
         private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
         private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
-        private const string Category = "Naming";
+        private const string Category = "Performance";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, 
+                                                                            Title, 
+                                                                            MessageFormat, 
+                                                                            Category, 
+                                                                            DiagnosticSeverity.Warning, 
+                                                                            isEnabledByDefault: true, 
+                                                                            description: Description);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public override void Initialize(AnalysisContext context)
-        {
-            // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
-            // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
-        }
-
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
-        {
-            // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
-            var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
-
-            // Find just those named type symbols with names containing lowercase letters.
-            if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
-            {
-                // For all such symbols, produce a diagnostic.
-                var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
-
-                context.ReportDiagnostic(diagnostic);
+        public override void Initialize(AnalysisContext context) => context.RegisterCompilationStartAction(startContext => {
+            var hasEmpty = startContext.Compilation.GetTypeByMetadataName("System.Array")?.GetMembers("Empty").Any();
+            if (hasEmpty == true) {
+                startContext.RegisterOperationAction(AnalyzeOperation,OperationKind.ArrayCreationExpression);
             }
+        });
+
+        private void AnalyzeOperation(OperationAnalysisContext context) {
+          var creationExpression = (IArrayCreationExpression)context.Operation;
+
+            if(creationExpression.DimensionSizes.Length == 1 && creationExpression.DimensionSizes[0].ConstantValue.HasValue) {
+                object arrayDimension = creationExpression.DimensionSizes[0].ConstantValue.Value;
+                if (arrayDimension is int && (int)arrayDimension == 0) {
+                    var diagnostic = Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation());
+                    context.ReportDiagnostic(diagnostic);
+                }
+            }
+
         }
     }
 }
