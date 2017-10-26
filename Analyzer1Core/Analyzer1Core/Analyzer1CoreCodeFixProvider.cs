@@ -48,18 +48,15 @@ namespace Analyzer1Core
 
             var root = await document.GetSyntaxRootAsync(c);
             var creationExpr = root.FindNode(diagnostic.Location.SourceSpan);
-
-
-            var r = Array.Empty<string>();
-
             var semanticModel = await document.GetSemanticModelAsync(c);
             var operation = (IArrayCreationExpression)semanticModel.GetOperation(creationExpr);
-            var generic = operation.Type;
+            var arrayTypeSymbol = (IArrayTypeSymbol)operation.Type;
+            var genericType = arrayTypeSymbol.ElementType;
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var arrayType = semanticModel.Compilation.GetTypeByMetadataName("System.Array");
             var typeExpr = generator.TypeExpression(arrayType);
-            var genericName = generator.GenericName("Empty", generic);
+            var genericName = generator.GenericName("Empty", genericType);
             var memberAccess = generator.MemberAccessExpression(typeExpr, genericName);
             var invocationExpr = generator.InvocationExpression(memberAccess);
 
